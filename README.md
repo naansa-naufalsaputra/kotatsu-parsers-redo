@@ -61,7 +61,7 @@ JVM and Android applications.
 - [Kotatsu-Redo](https://github.com/Kotatsu-Redo/Kotatsu-Redo)
 - [Futon](https://github.com/AppFuton/Futon)
 - [Kototoro](https://github.com/Kototoro-app/Kototoro)
-- 
+  
 ## Contribution
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for the guidelines.
