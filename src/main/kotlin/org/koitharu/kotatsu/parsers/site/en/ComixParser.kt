@@ -590,31 +590,27 @@ internal class Comix(context: MangaLoaderContext) :
         if (chapters.isEmpty()) return null
         val globalMax = chapters.maxOf { it.optDouble("number", 0.0) }
 
-        class Stat {
-            val numbers = HashSet<Double>()
-            var min = Double.MAX_VALUE
-            var max = -Double.MAX_VALUE
-            var votes = 0L
-        }
-
-        val stats = LinkedHashMap<String, Stat>()
+        val numbers = HashMap<String, MutableSet<Double>>()
+        val minNumber = HashMap<String, Double>()
+        val maxNumber = HashMap<String, Double>()
+        val votes = HashMap<String, Long>()
         for (chapter in chapters) {
+            val key = teamKeyOf(chapter)
             val number = chapter.optDouble("number", 0.0)
-            val stat = stats.getOrPut(teamKeyOf(chapter)) { Stat() }
-            stat.numbers.add(number)
-            stat.min = minOf(stat.min, number)
-            stat.max = maxOf(stat.max, number)
-            stat.votes += chapter.optLong("votes", 0L)
+            numbers.getOrPut(key) { HashSet() }.add(number)
+            minNumber[key] = minOf(minNumber[key] ?: Double.MAX_VALUE, number)
+            maxNumber[key] = maxOf(maxNumber[key] ?: -Double.MAX_VALUE, number)
+            votes[key] = (votes[key] ?: 0L) + chapter.optLong("votes", 0L)
         }
 
-        return stats.entries.maxWithOrNull(
-            compareBy<Map.Entry<String, Stat>>(
-                { it.value.numbers.size },
-                { if (it.value.max >= globalMax) 1 else 0 },
-                { -it.value.min },
-                { it.value.votes },
+        return numbers.keys.maxWithOrNull(
+            compareBy(
+                { numbers.getValue(it).size },
+                { if ((maxNumber[it] ?: 0.0) >= globalMax) 1 else 0 },
+                { -(minNumber[it] ?: 0.0) },
+                { votes[it] ?: 0L },
             ),
-        )?.key
+        )
     }
 
     /** Keep one chapter per number, preferring the most-voted (then newest id). */
